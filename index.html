@@ -272,11 +272,58 @@ const escBtn = document.getElementById('esc-btn');
 virtualInput.addEventListener('input', (e) => STATE.input = e.target.value);
 enterBtn.addEventListener('click', () => { STATE.keys['Enter'] = true; setTimeout(() => STATE.keys['Enter'] = false, 100); });
 
-function addTouchListeners(btn, key) {
-  btn.addEventListener('touchstart', (e) => { e.preventDefault(); STATE.keys[key] = true; });
+function handleSpaceAction() {
+  if(STATE.scene==='intro'){
+    STATE.introStep++;
+    if(STATE.introStep>=introTexts.length){
+      STATE.scene='hub';
+      STATE.player.x=400;STATE.player.y=400;
+      showMessage('Marche vers la Forêt pour commencer !',180);
+      scheduleSave();
+    }
+    return;
+  }
+
+  if(STATE.scene==='gameover'){
+    STATE.scene='hub';
+    STATE.player.hp=STATE.player.maxHp;
+    STATE.player.x=400;STATE.player.y=400;
+    STATE.combat=null;STATE.enemies=[];
+    scheduleSave();
+    return;
+  }
+
+  if(STATE.scene==='victory'){
+    STATE.scene='hub';
+    STATE.player.x=400;STATE.player.y=400;
+    STATE.combat=null;STATE.enemies=[];
+    scheduleSave();
+    return;
+  }
+
+  if(STATE.scene==='hub'){
+    if(STATE.nearSign==='boss'){startBoss();}
+    else if(STATE.nearSign){enterLevel(STATE.nearSign);}
+    return;
+  }
+
+  if(STATE.scene==='level'){
+    const near=findNearestEnemy();
+    if(near){startCombat(near);}
+    return;
+  }
+
+  if(STATE.scene==='boss'){
+    startCombat(STATE.finalBoss);
+    return;
+  }
+}
+
+function addTouchListeners(btn, key, onPress) {
+  btn.addEventListener('touchstart', (e) => { e.preventDefault(); STATE.keys[key] = true; if(onPress) onPress(); });
   btn.addEventListener('touchend', (e) => { e.preventDefault(); STATE.keys[key] = false; });
   // Also add mouse for desktop
-  btn.addEventListener('mousedown', () => STATE.keys[key] = true);
+  btn.addEventListener('mousedown', (e) => { e.preventDefault(); STATE.keys[key] = true; if(onPress) onPress(); });
   btn.addEventListener('mouseup', () => STATE.keys[key] = false);
   btn.addEventListener('mouseleave', () => STATE.keys[key] = false);
 }
@@ -285,7 +332,7 @@ addTouchListeners(upBtn, 'ArrowUp');
 addTouchListeners(downBtn, 'ArrowDown');
 addTouchListeners(leftBtn, 'ArrowLeft');
 addTouchListeners(rightBtn, 'ArrowRight');
-addTouchListeners(spaceBtn, ' ');
+addTouchListeners(spaceBtn, ' ', handleSpaceAction);
 addTouchListeners(spell1Btn, '1');
 addTouchListeners(spell2Btn, '2');
 addTouchListeners(spell3Btn, '3');
