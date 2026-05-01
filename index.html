@@ -80,6 +80,49 @@
     max-width: 800px;
   }
   .help b { color: #7fdbff; }
+  .virtual-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+    align-items: center;
+  }
+  .movement {
+    display: grid;
+    grid-template-columns: 50px 50px 50px;
+    grid-template-rows: 50px 50px 50px;
+    gap: 4px;
+    justify-items: center;
+  }
+  .movement button {
+    width: 50px;
+    height: 50px;
+    padding: 0;
+    font-size: 20px;
+  }
+  #up-btn { grid-column: 2; grid-row: 1; }
+  #left-btn { grid-column: 1; grid-row: 2; }
+  #down-btn { grid-column: 2; grid-row: 3; }
+  #right-btn { grid-column: 3; grid-row: 2; }
+  .actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .actions button {
+    min-width: 60px;
+  }
+  .input-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  #virtual-input {
+    padding: 8px;
+    font-size: 16px;
+    width: 150px;
+  }
 </style>
 </head>
 <body>
@@ -92,14 +135,34 @@
     <span id="save-status">Chargement...</span>
   </div>
 </div>
+<div class="virtual-controls">
+  <div class="movement">
+    <button id="up-btn">↑</button>
+    <button id="left-btn">←</button>
+    <button id="down-btn">↓</button>
+    <button id="right-btn">→</button>
+  </div>
+  <div class="actions">
+    <button id="space-btn">Action</button>
+    <button id="spell1-btn">1</button>
+    <button id="spell2-btn">2</button>
+    <button id="spell3-btn">3</button>
+    <button id="hub-btn">H</button>
+    <button id="esc-btn">Esc</button>
+  </div>
+  <div class="input-controls">
+    <input type="text" id="virtual-input" placeholder="Réponse" />
+    <button id="enter-btn">Entrée</button>
+  </div>
+</div>
 <div class="help">
-  Clique sur le jeu pour activer le clavier ·
+  Utilisez les contrôles virtuels ci-dessous ou le clavier ·
   <b>Flèches</b> = bouger ·
-  <b>Espace</b> = action ·
+  <b>Action</b> = interagir ·
   <b>1/2/3</b> = changer de sort ·
-  <b>0–9</b> + <b>Entrée</b> = répondre ·
+  <b>Champ réponse + Entrée</b> = répondre aux questions ·
   <b>H</b> = retour au hub ·
-  <b>Échap</b> = fuir
+  <b>Esc</b> = fuir
 </div>
 <script>
 (function(){
@@ -191,6 +254,43 @@ function resetGame(){
   cv.focus();
 }
 resetBtn.addEventListener('click',resetGame);
+
+// ---------- CONTRÔLES VIRTUELS ----------
+const virtualInput = document.getElementById('virtual-input');
+const enterBtn = document.getElementById('enter-btn');
+const upBtn = document.getElementById('up-btn');
+const downBtn = document.getElementById('down-btn');
+const leftBtn = document.getElementById('left-btn');
+const rightBtn = document.getElementById('right-btn');
+const spaceBtn = document.getElementById('space-btn');
+const spell1Btn = document.getElementById('spell1-btn');
+const spell2Btn = document.getElementById('spell2-btn');
+const spell3Btn = document.getElementById('spell3-btn');
+const hubBtn = document.getElementById('hub-btn');
+const escBtn = document.getElementById('esc-btn');
+
+virtualInput.addEventListener('input', (e) => STATE.input = e.target.value);
+enterBtn.addEventListener('click', () => { STATE.keys['Enter'] = true; setTimeout(() => STATE.keys['Enter'] = false, 100); });
+
+function addTouchListeners(btn, key) {
+  btn.addEventListener('touchstart', (e) => { e.preventDefault(); STATE.keys[key] = true; });
+  btn.addEventListener('touchend', (e) => { e.preventDefault(); STATE.keys[key] = false; });
+  // Also add mouse for desktop
+  btn.addEventListener('mousedown', () => STATE.keys[key] = true);
+  btn.addEventListener('mouseup', () => STATE.keys[key] = false);
+  btn.addEventListener('mouseleave', () => STATE.keys[key] = false);
+}
+
+addTouchListeners(upBtn, 'ArrowUp');
+addTouchListeners(downBtn, 'ArrowDown');
+addTouchListeners(leftBtn, 'ArrowLeft');
+addTouchListeners(rightBtn, 'ArrowRight');
+addTouchListeners(spaceBtn, ' ');
+addTouchListeners(spell1Btn, '1');
+addTouchListeners(spell2Btn, '2');
+addTouchListeners(spell3Btn, '3');
+addTouchListeners(hubBtn, 'h');
+addTouchListeners(escBtn, 'Escape');
 
 // ---------- COULEURS ----------
 const C={gold:'#f4c430',red:'#e24b4a',blue:'#5dade2',purple:'#9b6dd4',green:'#52c878',
