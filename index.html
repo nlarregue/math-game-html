@@ -172,7 +172,7 @@ const resetBtn=document.getElementById('reset-btn');
 cv.focus();cv.addEventListener('click',()=>cv.focus());
 
 // ---------- ÉTAT ----------
-const DEFAULT_STATE=()=>({scene:'intro',introStep:0,player:{x:400,y:250,hp:10,maxHp:10,anim:0},
+const DEFAULT_STATE=()=>({scene:'intro',introStep:0,introAuto:false,introTimer:0,player:{x:400,y:250,hp:10,maxHp:10,anim:0},
 killsByLevel:{foret:0,chateau:0,montagne:0},spells:['feu'],
 currentLevel:null,enemies:[],particles:[],
 combat:null,
@@ -751,8 +751,14 @@ function drawIntro(){
   const lines=introTexts[step].split('\n');
   lines.forEach((l,i)=>ctx.fillText(l,400,445+i*22));
   ctx.fillStyle=C.gold;ctx.font='14px sans-serif';
-  if(Math.floor(STATE.player.anim/30)%2===0){
-    ctx.fillText('▼ Action pour continuer ▼',400,495);
+  if(step===0 && !STATE.introAuto){
+    if(Math.floor(STATE.player.anim/30)%2===0){
+      ctx.fillText('▼ Action pour démarrer ▼',400,495);
+    }
+  } else if(!STATE.introAuto){
+    if(Math.floor(STATE.player.anim/30)%2===0){
+      ctx.fillText('▼ Action pour continuer ▼',400,495);
+    }
   }
 }
 
@@ -1203,6 +1209,18 @@ function drawGameOver(){
 function update(){
   STATE.player.anim++;
   updateParticles();
+  if(STATE.scene==='intro' && STATE.introAuto){
+    STATE.introTimer++;
+    if(STATE.introTimer>=150){
+      STATE.introTimer=0;
+      STATE.introStep++;
+      if(STATE.introStep>=introTexts.length){
+        STATE.scene='hub';STATE.player.x=400;STATE.player.y=400;
+        showMessage('Marche vers la Forêt pour commencer !',180);
+        scheduleSave();
+      }
+    }
+  }
   if(STATE.combat&&STATE.combat.feedbackTime>0){
     STATE.combat.feedbackTime--;
     if(STATE.combat.feedbackTime===0)STATE.combat.feedback='';
@@ -1236,11 +1254,9 @@ window.addEventListener('keydown',e=>{
 
   if(STATE.scene==='intro'){
     if(e.key===' '){
-      STATE.introStep++;
-      if(STATE.introStep>=introTexts.length){
-        STATE.scene='hub';STATE.player.x=400;STATE.player.y=400;
-        showMessage('Marche vers la Forêt pour commencer !',180);
-        scheduleSave();
+      if(STATE.introStep===0 && !STATE.introAuto){
+        STATE.introAuto=true;
+        STATE.introTimer=0;
       }
       e.preventDefault();
     }
